@@ -147,15 +147,6 @@ The limits: everything above eight digits takes the slow path, and a sequence nu
 million messages. The message lives in one buffer inside the encoder, and the next call overwrites it. One encoder
 handles one template. And the fastest version assumes whole milliseconds, which I'll come back to.
 
-## My final solution
-
-104 instructions and 31 cycles per message on the certified Zen 2. Their cycle counter ticks at 3.1 GHz, so that's 10
-nanoseconds for a 294-byte order, checksum included.
-
-The memory is 9 KB of tables right in front of the message: the millisecond digits (8 KB), the checksum text (1 KB),
-and 64 bytes of state for the current day and second. Everything sits at a fixed distance from the message, so one
-register reaches all of it.
-
 ## The journey
 
 My laptop is an M2 Mac. The certified machine is a Zen 2, so I needed something at home that behaves like it. 
@@ -353,10 +344,15 @@ to 64 bytes. The heap checks are now part of every test run.
 
 > // The best bugs only show up on the machine you're not looking at.
 
+
 ## The final code
 
-104 instructions, and the only jumps are the seven checks that never go anywhere. The colors link each line to the
-instructions it became; hover over a line or an instruction to see its partners.
+104 instructions and 31 cycles per message on the certified Zen 2. Their cycle counter ticks at 3.1 GHz, so that's 10
+nanoseconds for a 294-byte order, checksum included.
+
+The memory is 9 KB of tables right in front of the message: the millisecond digits (8 KB), the checksum text (1 KB),
+and 64 bytes of state for the current day and second. Everything sits at a fixed distance from the message, so one
+register reaches all of it.
 
 {% include godbolt-fix.html %}
 
