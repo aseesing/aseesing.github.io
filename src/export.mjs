@@ -1,4 +1,4 @@
-// Renders each post's figures (drawn in its figs module) and cover to PNG, 2x, on white, and writes the live
+// Renders each post's figures (drawn in its figs module) and cover to PNG, 2x, on a transparent background, and writes the live
 // Godbolt view to ../_includes. Only the figures a post uses are rendered.
 // Needs Google Chrome. Run: node src/export.mjs [figure name]
 import { writeFileSync, readFileSync, mkdirSync, unlinkSync } from 'node:fs';
@@ -13,7 +13,7 @@ const posts = [
 const css = readFileSync(`${here}figures.css`, 'utf8');
 const fonts = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&display=swap">';
 const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const shoot = (file, w, h, scale, out) => execFileSync(chrome, ['--headless=new', '--disable-gpu', '--hide-scrollbars',
+const shoot = (file, w, h, scale, out) => execFileSync(chrome, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--default-background-color=00000000',
   `--force-device-scale-factor=${scale}`, `--window-size=${w},${h}`, '--virtual-time-budget=6000', `--screenshot=${out}`, `file://${file}`], { stdio: 'ignore' });
 const only = process.argv[2];
 

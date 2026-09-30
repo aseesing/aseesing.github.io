@@ -27,7 +27,7 @@ function kinds() {
 export function figLayout() {
   const cols = 42, cw = 17, ch = 24, x0 = 23, y0 = 44, k = kinds();
   const rows = Math.ceil(MSG.length / cols), H = y0 + rows * (ch + 4) + 16;
-  const cls = { '': 'cell', day: 'cell cell-day', sec: 'cell cell-sec', msg: 'cell cell-keep' };
+  const cls = { '': 'cell', day: 'cell cell-day', sec: 'cell cell-sec', msg: 'cell cell-msg' };
   let b = '';
   const count = (kind) => k.filter((x) => x === kind).length;
   const legend = [['', `written once, in build() · ${count('')} bytes`], ['day', `once a day · ${count('day')}`],
@@ -40,7 +40,7 @@ export function figLayout() {
   [...MSG].forEach((c, i) => {
     const x = x0 + (i % cols) * cw, y = y0 + Math.floor(i / cols) * (ch + 4);
     b += `<rect x="${x + 0.5}" y="${y}" width="${cw - 1}" height="${ch}" rx="2" class="${cls[k[i]]}"/>`;
-    b += text(x + cw / 2, y + 16, esc(c), k[i] === 'msg' ? 't-ch t-cell-on' : c === '|' ? 't-ch t-cell-dim' : 't-ch', 'middle');
+    b += text(x + cw / 2, y + 16, esc(c), k[i] === 'msg' ? 't-ch t-ch-msg' : c === '|' ? 't-ch t-cell-dim' : 't-ch', 'middle');
   });
   return svg(760, H, `The 294-byte message: ${count('msg')} bytes change with every message, the rest is written once, once a day or once a second.`, b);
 }

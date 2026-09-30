@@ -12,16 +12,18 @@ image: /img/fix/cover.png
 
 At my previous employers I wrote a protocol code generator in Java. It generated the FIX parsers, the encoders and the
 message classes for us. The focus there was always clean code, and performance was a secondary concern.
-It just needed to be faster and easier to work with than [QuickFIX/J](https://quickfixj.org/). Which was not hard.
-As I had a deep hatred for QuickFIX. It was slow, it loves checked exceptions, and it required a lot of boilerplate.
-It would also crash and burn when something unexpected happened.
+It just needed to be faster and easier to work with than [QuickFIX/J](https://quickfixj.org/) (Which wasn't very hard)
+As also I had a deep hatred for QuickFIX. It was slow, it loves checked exceptions, and it requires a lot of effort to read a value.
+It would also crash and burn when something unexpected happened. An unknown tag in a group would completely break the decoder.
 
-This article is about the other end: extreme performance. It's a challenge from
+But this article is about the other end: extreme performance. It's a challenge from
 [HFT University](https://hftuniversity.com/): encode a FIX order as fast as you can. I'm also building my own exchange with 
-A FIX gateway (topic for another time), and some of the requirements of the challenge are different from what I do there. 
+A FIX gateway (topic for another time), and some of the requirements of this challenge are different from what I do there. 
 Where they differ, I've put a note on the side.
 
-> // Clean code is code everyone can read. Fast code only AI can read.
+> // Clean code is code everyone can read. Super fast code only AI can read.
+
+Trading companies will generate the messages using FPGA’s or even ASIC’s, so what I’m showing here will not earn me any money.
 
 ## What an encoder does
 

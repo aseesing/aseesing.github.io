@@ -23,7 +23,7 @@
   --f-body: "Source Serif 4", "Iowan Old Style", Georgia, "Times New Roman", serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
-body { margin: 0; background: #ffffff; color: var(--ink); font-family: var(--f-body); }
+body { margin: 0; background: transparent; color: var(--ink); font-family: var(--f-body); }
 code { font-family: var(--f-mono); }
 /* Figure marks and text, from the page tokens. */
 .grid { stroke: var(--rule); stroke-width: 1; }
@@ -78,3 +78,5 @@ code { font-family: var(--f-mono); }
 .t-ch { font-family: var(--f-mono); font-size: 11px; font-weight: 500; fill: var(--ink); }
 .cell-day { fill: #cfd5c9; stroke: var(--rule-strong); }
 .cell-sec { fill: rgba(208, 87, 42, 0.28); stroke: rgba(208, 87, 42, 0.5); }
+.cell-msg { fill: rgba(36, 70, 201, 0.22); stroke: var(--accent); }
+.t-ch-msg { fill: var(--accent-ink); font-weight: 600; }
