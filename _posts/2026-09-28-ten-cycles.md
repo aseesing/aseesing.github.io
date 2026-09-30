@@ -205,7 +205,9 @@ views of how busy each unit was, how long each instruction waited, and how full 
 where they told me something.
 
 I kept a log of every attempt. The ones that didn't help are left out of this post. In the code below I also left out
-the casts the intrinsics need, to keep it readable, and the `k...` names are constant vectors.
+the casts the intrinsics need, to keep it readable, and the `k...` names are constant vectors. I don't want to spoil
+the solution for the other participants of the challenge, so the last two steps are in pseudo-code, also in the final
+code.
 
 ### Version 1 · SWAR, no branches (59 cycles)
 
@@ -565,16 +567,11 @@ same exception. So after storing the digits, GCC had to assume the store might h
 and it wasn't allowed to load that number any earlier. Storing through types of my own, which C++ knows can't point at
 a `uint64_t`, takes that worry away:
 
-```diff
-+typedef long long Chars16 __attribute__((vector_size(16), aligned(1)));   // can't alias a uint64_t
-+typedef uint32_t Chars4 __attribute__((aligned(1)));
-     ...
--    std::memcpy(buf, &kTopChars[top], 4);
-+    *reinterpret_cast<Chars4*>(buf) = kTopChars[top];
-     const __m128i drop = _mm_loadu_si128(kDropLeading + kShape.zeros[length]);
--    _mm_storeu_si128(buf + kShape.top_length[length], _mm_shuffle_epi8(digits16(high4, low4), drop));
-+    *reinterpret_cast<Chars16*>(buf + kShape.top_length[length]) =
-+        std::bit_cast<Chars16>(_mm_shuffle_epi8(digits16(high4, low4), drop));
+```text
+before:  store the 16 digits through __m128i       # may alias anything, the next value too
+         load the next value                       # so this has to wait for the store
+after:   store them through a type of my own       # can't alias a uint64_t
+         load the next value                       # free to move up, before the store
 ```
 
 On its own this changed little, 3 % in the model, but the next step needed it. One trap on the way: clang ignores
@@ -586,14 +583,13 @@ crashes when it isn't.
 ### Version 9 · Interleave the conversions (10 cycles)
 
 Compilers reorder instructions to help the CPU. On x86, GCC normally does that only after it has assigned registers,
-and by then the conversions are tied together, because they reuse the same registers. These two flags turn on
+and by then the conversions are tied together, because they reuse the same registers. GCC has two options that turn on
 reordering before register allocation, and make it keep an eye on how many registers it needs. Running out means
 saving values to the stack and loading them back, which costs more than it saves.
 
-```diff
- target_compile_options(benchmark PRIVATE -O3
-     --param=max-completely-peeled-insns=4000 --param=max-completely-peel-times=16)
-+target_compile_options(benchmark PRIVATE -fschedule-insns -fsched-pressure)
+```text
+build flags += schedule instructions before register allocation
+             + while doing that, keep an eye on how many registers are live
 ```
 
 ![Program order before and after interleaving](/img/fig-sched.png)
@@ -608,8 +604,9 @@ nothing, same as for versions 7 and 8. I sent all three to the Zen 2 anyway, and
 
 ## The final code
 
-Thirty-four instructions and not a single jump. The colors link each line to the instructions it became; hover over a
-line or an instruction to see its partners.
+Thirty-four instructions and not a single jump. The lines that versions 8 and 9 changed are described in comments, not
+shown. The colors link each line to the instructions it became; hover over a line or an instruction to see its
+partners.
 
 {% include godbolt.html %}
 

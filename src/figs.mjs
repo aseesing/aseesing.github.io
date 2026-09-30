@@ -264,7 +264,7 @@ export function figSched() {
   b += text(x0, 116, 'FP scheduler full in 55 % of cycles · batch model 13.05 cycles per conversion', 't t-small');
   b += text(x0, 156, 'After · iteration 9: each head placed among the tails before it', 't t-strong');
   b += strip(166, [['S', 'A'], ['S', 'B'], ['V', 'A'], ['S', 'C'], ['V', 'B'], ['S', 'D'], ['V', 'C'], ['V', 'D']]);
-  b += text(x0, 226, 'typed stores, -fschedule-insns -fsched-pressure, no spills', 't t-small');
+  b += text(x0, 226, 'typed stores, scheduled before register allocation, no spills', 't t-small');
   b += text(x0, 242, 'FP scheduler full in 47 % of cycles · batch model 11.18 cycles per conversion', 't t-small');
   return svg(W, H, 'Program order of four conversions before and after pre-register-allocation scheduling: afterwards each scalar head runs among the previous vector tails.', b);
 }
@@ -297,7 +297,8 @@ export const figures = {
   journey: figJourney, overlap: figOverlap, chain: figChain, floors: figFloors, sched: figSched,
 };
 
-// The final code for the Godbolt-style view (lib.mjs).
+// The final code for the Godbolt-style view. What versions 8 and 9 changed is described, not shown, so as not to
+// spoil the challenge.
 const GB_SRC = [
   [null, 'uint64_t decimal_length(uint64_t v) {'],
   ['a', '    const auto zeros = std::countl_zero(v);'],
@@ -313,10 +314,10 @@ const GB_SRC = [
   ['f', '    const uint64_t low4 = value * 4 + high_and_top * kMinus4Pow8;'],
   ['g', '    const uint64_t top_length = kShape.top_length[length];'],
   ['h', '    const uint64_t zeros = kShape.zeros[length];'],
-  ['i', '    *reinterpret_cast<Chars4*>(buf) = kTopChars.chars[top];'],
+  ['i', '    // store kTopChars.chars[top] at buf       (version 8: not shown)'],
   ['j', '    const __m128i drop = _mm_loadu_si128(kDropLeading + zeros);'],
-  ['j', '    *reinterpret_cast<Chars16*>(buf + top_length) ='],
-  ['j', '        _mm_shuffle_epi8(digits16(high4, low4), drop);'],
+  ['j', '    // store _mm_shuffle_epi8(digits16(high4, low4), drop)'],
+  ['j', '    //     at buf + top_length                  (version 8: not shown)'],
   [null, '    return length;'],
   [null, '}'],
   [null, ''],
@@ -378,3 +379,5 @@ const GB_ASM = [
 export function godbolt() {
   return godboltView(GB_SRC, GB_ASM, 'x86-64, GCC 14.2 -O2 -march=znver2');
 }
+
+export const godboltRows = Math.max(GB_SRC.length, GB_ASM.length);

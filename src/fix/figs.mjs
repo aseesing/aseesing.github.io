@@ -2,9 +2,9 @@
 import { esc, text, svg, arrow, polyArrow, box, godboltView } from '../lib.mjs';
 
 // The first message the final encoder writes for the benchmark, SOH as '|'.
-const MSG = '8=FIX.4.4|9=271|35=D|49=ALGO-ENG1|56=NASDAQ-GW|34=00000001|52=20260320-17:50:00.000000000|11=01000000|' +
+const MSG = '8=FIX.4.4|9=265|35=D|49=ALGO-ENG1|56=NASDAQ-GW|34=00000001|52=20260320-17:50:00.000|11=01000000|' +
   '54=1|38=00017453|44=00008515.59400038|1=HEDGE-MAIN|21=1|55=AAPL|40=2|59=0|15=USD|207=XNAS|100=XNAS|47=A|' +
-  '167=CS|22=8|48=100123|58=Algo order from strategy MOMENTUM-v3.2 session 20260320|10=017|';
+  '167=CS|22=8|48=100123|58=Algo order from strategy MOMENTUM-v3.2 session 20260320|10=244|';
 
 // How often each byte of MSG is written: 'msg' every message, 'sec' once a second, 'day' once a day, else once.
 function kinds() {
@@ -71,7 +71,8 @@ export function figChecksum() {
 
 export const figures = { layout: figLayout, checksum: figChecksum };
 
-// The final fast path for the Godbolt-style view (casts and the non-AVX2 path left out).
+// The final fast path for the Godbolt-style view (casts and the non-AVX2 path left out). What versions 6 and 7
+// changed is described, not shown, so as not to spoil the challenge.
 const GB_SRC = [
   [null, 'std::string_view encode(const OrderFields& o) {'],
   ['a', '    const uint64_t millisecond ='],
@@ -85,7 +86,7 @@ const GB_SRC = [
   ['h', '    if (o.side >= 10) [[unlikely]] return encode_other(o);'],
   [null, ''],
   ['i', '    char* const v = msg + seq_offset;  // the variable block'],
-  ['j', '    const uint64_t millis = kMillis[millisecond];'],
+  ['j', '    // millis = the table entry for millisecond (version 6: not shown)'],
   ['k', '    const uint64_t whole = o.price / kE8;'],
   ['l', '    const uint64_t frac = o.price - whole * kE8;'],
   ['m', '    uint32_t sum = state().sum + o.side + (millis >> 32);'],
@@ -98,18 +99,18 @@ const GB_SRC = [
   ['q', '                               _mm256_extracti128_si256(sums, 1));'],
   ['q', '    s2 = _mm_add_epi64(s2, _mm_unpackhi_epi64(s2, s2));'],
   ['q', '    sum += _mm_cvtsi128_si32(s2);'],
-  ['r', '    const __m256i zeros = _mm256_load_si256(state().zeros);'],
+  ['r', "    // zeros = 32 × '0'                    (version 6: not shown)"],
   ['s', '    const __m256i c1 = _mm256_or_si256(d1, zeros);'],
   ['s', '    const __m128i seq_clid = _mm256_castsi256_si128(c1);'],
   ['s', '    const __m128i qty_whole = _mm256_extracti128_si256(c1, 1);'],
   ['s', '    _mm_storel_epi64(v, seq_clid);          // 34='],
-  ['s', '    store_high(v + 43, seq_clid);           // 11='],
-  ['s', '    _mm_storel_epi64(v + 60, qty_whole);    // 38='],
-  ['s', '    store_high(v + 72, qty_whole);          // 44= whole'],
-  ['t', '    _mm_storel_epi64(v + 81, _mm256_or_si256(d2, zeros));'],
+  ['s', '    store_high(v + 37, seq_clid);           // 11='],
+  ['s', '    _mm_storel_epi64(v + 54, qty_whole);    // 38='],
+  ['s', '    store_high(v + 66, qty_whole);          // 44= whole'],
+  ['t', '    _mm_storel_epi64(v + 75, _mm256_or_si256(d2, zeros));'],
   ['u', '    std::memcpy(v + 30, &millis, 4);        // 52= millis'],
-  ['w', "    v[55] = '0' + o.side;                   // 54="],
-  ['x', '    const uint32_t checksum = kChecksum[uint8_t(sum)];'],
+  ['w', "    v[49] = '0' + o.side;                   // 54="],
+  ['x', '    // checksum = the text for uint8_t(sum) (version 6: not shown)'],
   ['y', '    std::memcpy(msg + checksum_offset, &checksum, 4);'],
   ['z', '    return {msg, length};'],
   [null, '}'],
@@ -201,19 +202,19 @@ const GB_ASM = [
   ['m', 'movsx', 'edx, r9b', 'the side'],
   ['m', 'add', 'edx, [rdi-56]', '+ the static sum'],
   ['w', 'add', 'r9d, 48', "side + '0'"],
-  ['u', 'mov', '[r8+30], r14d', 'store the millisecond digits'],
-  ['w', 'mov', '[r8+55], r9b', 'store the side'],
+  ['u', 'mov', '[r8+30], r14d', 'store the millisecond digits and the SOH'],
+  ['w', 'mov', '[r8+49], r9b', 'store the side'],
   ['q', 'add', 'eax, edx', 'the whole sum'],
   ['x', 'movzx', 'eax, al', 'its low byte: the sum mod 256'],
   ['s', 'vpor', 'ymm5, ymm4, ymm5', 'digits to ASCII'],
   ['t', 'vpor', 'ymm4, ymm4, ymm0', 'the fraction to ASCII'],
   ['s', 'vmovdqa', 'xmm6, xmm5', 'a register copy'],
   ['s', 'vextracti128', 'xmm5, ymm5, 1', 'quantity and whole'],
-  ['t', 'vmovq', '[r8+81], xmm4', 'store the fraction'],
+  ['t', 'vmovq', '[r8+75], xmm4', 'store the fraction'],
   ['s', 'vmovq', '[r8], xmm6', 'store the sequence number'],
-  ['s', 'vmovhps', '[r8+43], xmm6', 'store the ClOrdID'],
-  ['s', 'vmovq', '[r8+60], xmm5', 'store the quantity'],
-  ['s', 'vmovhps', '[r8+72], xmm5', "store the price's whole part"],
+  ['s', 'vmovhps', '[r8+37], xmm6', 'store the ClOrdID'],
+  ['s', 'vmovq', '[r8+54], xmm5', 'store the quantity'],
+  ['s', 'vmovhps', '[r8+66], xmm5', "store the price's whole part"],
   ['x', 'mov', 'edx, [rdi+rax*4-1088]', '"ddd|" from the checksum table'],
   ['y', 'mov', 'eax, [rsp+252]', 'where 10= goes, from the builder'],
   ['y', 'mov', '[rdi+rax], edx', 'store the checksum'],

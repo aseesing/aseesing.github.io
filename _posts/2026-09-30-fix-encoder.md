@@ -2,7 +2,7 @@
 layout: post
 permalink: /fix-encoder/
 title: A FIX order in ten nanoseconds
-description: How to write a 294-byte FIX NewOrderSingle in 31 cpu cycles.
+description: How to write a 288-byte FIX NewOrderSingle in 30 cpu cycles.
 author: Arjan Seesing
 date: 2026-09-30
 image: /img/fix/cover.png
@@ -31,11 +31,10 @@ FIX sends every field as `tag=value` in plain text, with the byte 1 (SOH) betwee
 NewOrderSingle, message type `35=D`. This is one, exactly as the final version writes it, with SOH shown as `|`:
 
 ```text
-8=FIX.4.4|9=271|35=D|49=ALGO-ENG1|56=NASDAQ-GW|34=00000001|
-52=20260320-17:50:00.000000000|11=01000000|54=1|38=00017453|
-44=00008515.59400038|1=HEDGE-MAIN|21=1|55=AAPL|40=2|59=0|15=USD|207=XNAS|
-100=XNAS|47=A|167=CS|22=8|48=100123|
-58=Algo order from strategy MOMENTUM-v3.2 session 20260320|10=017|
+8=FIX.4.4|9=265|35=D|49=ALGO-ENG1|56=NASDAQ-GW|34=00000001|
+52=20260320-17:50:00.000|11=01000000|54=1|38=00017453|44=00008515.59400038|
+1=HEDGE-MAIN|21=1|55=AAPL|40=2|59=0|15=USD|207=XNAS|100=XNAS|47=A|167=CS|22=8|
+48=100123|58=Algo order from strategy MOMENTUM-v3.2 session 20260320|10=244|
 ```
 
 Most of it is numbers turned into text: the sequence number (34), the time it was sent (52), our order ID (11), the
@@ -110,7 +109,7 @@ enough.
 
 **Every field gets a fixed width.** FIX allows leading zeros in numbers: `34=00000001` means the same as `34=1`. So
 the sequence number is always eight digits, and so are the order ID and the quantity. The price is always eight digits,
-a point, and eight decimals. Now every byte of the message is always in the same place. The body length is always 271,
+a point, and eight decimals. Now every byte of the message is always in the same place. The body length is always 265,
 and `build()` can write the whole message once. `encode()` only fills in the holes.
 
 **My gateway.** Leading zeros are valid FIX, but valid and "accepted by the venue's certification test" are two different things. I
@@ -118,8 +117,8 @@ would check with the venue before sending `34=00000001` to a real exchange.
 {: .side}
 
 **What changes rarely is written rarely.** The date is written once a day, the time (HH:MM:SS) once a second. The
-benchmark's timestamps are whole milliseconds, so the last six digits of the nanoseconds are always zero and are never
-written at all. For each message, only 47 of the 294 bytes change.
+benchmark's timestamps are whole milliseconds, and the time goes out to the millisecond: `17:50:00.000`. For each
+message, only 47 of the 288 bytes change.
 
 ![The message, byte by byte](/img/fix/fig-layout.png)
 
@@ -133,7 +132,7 @@ part at once. A second one does the price's decimals. The three millisecond digi
 the same number every time, so `build()` works that out once, counting every variable digit as `'0'`. Per message,
 only the values of the digits have to be added. They're already in the vector registers, and one instruction
 (`vpsadbw`) adds up eight bytes at once. The low byte of the total is the checksum, and a table of 256 four-byte
-entries gives the text, `"017|"`, in one load.
+entries gives the text, `"244|"`, in one load.
 
 ![The checksum from two sums](/img/fix/fig-checksum.png)
 
@@ -168,7 +167,8 @@ result) and on the busiest resource (an execution unit, or a waiting room that f
 guess costs about 20 cycles.
 
 I kept a log of every attempt, and I've left out the ones that didn't help. The code is simplified: no casts, and only
-the AVX2 path.
+the AVX2 path. I don't want to spoil the solution for the other participants of the challenge, so the last two steps
+are in pseudo-code, also in the final code.
 
 ### Version 1 · Write it once (57 cycles in the model)
 
@@ -191,7 +191,7 @@ const uint32_t sum = static_sum + side + add_up(sums);
 store8(m + l.seq, d1 | '0'); ...                 // the digits, into their holes
 store16(m + l.time, shuffle(time) | "  :  :  .");  // HH:MM:SS. and separators
 m[l.side] = '0' + side;
-std::memcpy(m + l.checksum, &kChecksum[sum & 0xFF], 4);  // "017|"
+std::memcpy(m + l.checksum, &kChecksum[sum & 0xFF], 4);  // "244|"
 return {m, l.len};
 ```
 
@@ -324,13 +324,11 @@ The millisecond and checksum tables sat after the message, at a distance that de
 GCC loaded that distance and added it before each lookup. Now both tables sit in front of the message, at a fixed
 distance, and each lookup is one instruction:
 
-```diff
--const __m256i zeros = _mm256_set1_epi8('0');                // three instructions
-+const __m256i zeros = _mm256_load_si256(state().zeros);     // one load
--std::memcpy(&millis, m + l.tables + 8 * millisecond, 8);    // l.tables loaded
-+std::memcpy(&millis, m - 9088 + 8 * millisecond, 8);        // a constant
--checksum = kChecksum[sum & 0xFF];
-+std::memcpy(&checksum, m - 1088 + 4 * uint8_t(sum), 4);
+```text
+before:  '0' bytes = build them                     # three instructions
+after:   '0' bytes = load from the state            # one load
+before:  table = message + its length + ...         # a load and an add first
+after:   table = message - a constant               # part of the lookup itself
 ```
 
 The first change alone didn't show; the certified score has a resolution of one cycle. Together they did: 31 cycles.
@@ -344,15 +342,36 @@ to 64 bytes. The heap checks are now part of every test run.
 
 > // The best bugs only show up on the machine you're not looking at.
 
+### Version 7 · Nobody asked for nanoseconds (30 cycles)
+
+The challenge describes the timestamp with nine digits after the second, but FIX 4.4 itself sends a timestamp to the
+millisecond, and the certified run's validation accepts that. Every benchmark timestamp is a whole millisecond, so the
+six zeros at the end carry nothing. This version drops them: `52=20260320-17:50:00.000`, and the message shrinks from
+294 to 288 bytes.
+
+It removes no work per message. The zeros were written once, in `build()`, and already counted in the static sum. The
+fields after the timestamp just move six bytes closer, and the fast path is the same 104 instructions. And yet the
+certified run said 30, one cycle less.
+
+Why, I honestly don't know. The message covers the same number of cache lines, and each version has one 8-byte store
+that crosses a cache line. It may be something in the layout the tools don't show. Or 31 and 30 sit on either side of
+a rounding: the certified run reports whole cycles, and I never sent the same version twice to see how much it varies.
+
+> // Every speedup has an explanation. Some of them are just shy.
+
 
 ## The final code
 
-104 instructions and 31 cycles per message on the certified Zen 2. Their cycle counter ticks at 3.1 GHz, so that's 10
-nanoseconds for a 294-byte order, checksum included.
+104 instructions and 30 cycles per message on the certified Zen 2. Their cycle counter ticks at 3.1 GHz, so that's
+under 10 nanoseconds for a 288-byte order, checksum included.
 
 The memory is 9 KB of tables right in front of the message: the millisecond digits (8 KB), the checksum text (1 KB),
 and 64 bytes of state for the current day and second. Everything sits at a fixed distance from the message, so one
 register reaches all of it.
+
+The lines that versions 6 and 7 changed are described in comments, not shown. The colors link each line to the
+instructions it became; hover over a line or an instruction to see its partners. The only jumps are the seven checks,
+and they never go anywhere.
 
 {% include godbolt-fix.html %}
 

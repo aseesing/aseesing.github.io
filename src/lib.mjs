@@ -44,7 +44,8 @@ export function box(x, y, w, h, title, sub, cls = 'box') {
 // The Godbolt-style view: source lines, GCC's instructions in its own order, and what each does. Each
 // source line has a group letter; its instructions share the group's color, and hovering links them.
 export function godboltView(src, asm, head) {
-  const letters = [...new Set([...src.map(([g]) => g), ...asm.map(([g]) => g)].filter(Boolean))].sort();
+  // Colors in the order the groups first appear on the left, so neighbours differ.
+  const letters = [...new Set([...src.map(([g]) => g), ...asm.map(([g]) => g)].filter(Boolean))];
   const hue = (g) => (g ? ` h${letters.indexOf(g) % 8}` : '');
   const s = src.map(([g, t]) => `<div class="gb-l${hue(g)}"${g ? ` data-g="${g}" tabindex="0"` : ''}>${esc(t) || '&nbsp;'}</div>`).join('');
   const a = asm.map(([g, op, args, why]) =>

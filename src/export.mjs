@@ -1,5 +1,6 @@
 // Renders each post's figures (drawn in its figs module) and cover to PNG, 2x, on a transparent background, and writes the live
-// Godbolt view to ../_includes. Only the figures a post uses are rendered.
+// Godbolt view to ../_includes. Only the figures a post uses are rendered. The PNG of the Godbolt view, which is
+// for LinkedIn, gets the page's background.
 // Needs Google Chrome. Run: node src/export.mjs [figure name]
 import { writeFileSync, readFileSync, mkdirSync, unlinkSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -32,7 +33,7 @@ for (const p of posts) {
     const [w, h] = name === 'godbolt' ? [1100, 34 + 20 + godboltRows * 22 + 2] : markup.match(/viewBox="0 0 (\d+) (\d+)"/).slice(1).map(Number);
     const page = `${here}.export-${name}.html`;
     writeFileSync(page, `<!doctype html><meta charset="utf-8">${fonts}<style>${css}
-.wrap { width: ${w}px; padding: 24px; } .wrap svg { display: block; width: 100%; height: auto; }</style><div class="wrap">${markup}</div>`);
+.wrap { width: ${w}px; padding: 24px; }${name === 'godbolt' ? ' body { background: #f6f7f4; }' : ''} .wrap svg { display: block; width: 100%; height: auto; }</style><div class="wrap">${markup}</div>`);
     shoot(page, w + 48, h + 48, 2, `${img}fig-${name}.png`);
     unlinkSync(page);
     console.log(`${p.img}fig-${name}.png`);
