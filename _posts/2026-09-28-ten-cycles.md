@@ -206,8 +206,8 @@ where they told me something.
 
 I kept a log of every attempt. The ones that didn't help are left out of this post. In the code below I also left out
 the casts the intrinsics need, to keep it readable, and the `k...` names are constant vectors. I don't want to spoil
-the solution for the other participants of the challenge, so the last two steps are in pseudo-code, also in the final
-code.
+the solution for the other participants of the challenge, so the last two steps (version 6, and versions 7 to 9) are
+in pseudo-code, also in the final code.
 
 ### Version 1 · SWAR, no branches (59 cycles)
 
@@ -450,24 +450,13 @@ My first try at this was 23 % slower than the branch. It worked out `top_length`
 compares and conditional moves: eight instructions that did no digit work at all. A 42-byte table, indexed by length,
 gives both numbers with two loads:
 
-```diff
- size_t u64_to_chars(uint64_t value, char* buf) {
--    if (value >= kPow10[16]) [[unlikely]]
--        return u64_to_chars_long(value, buf);
-     const uint64_t length = decimal_length(value);
--    const uint64_t high = value / kPow10[8];
--    const uint64_t low = value - high * kPow10[8];
--    const __m128i drop = _mm_loadu_si128(kDropLeading + 16 - length);
--    _mm_storeu_si128(buf, _mm_shuffle_epi8(digits16(high, low), drop));
-+    const uint64_t top = value / kPow10[16];                    // 0 to 1844
-+    const uint64_t high_and_top = value / kPow10[8];            // runs beside the line above
-+    const uint64_t high = high_and_top - top * kPow10[8];
-+    const uint64_t low = value - high_and_top * kPow10[8];
-+    std::memcpy(buf, &kTopChars[top], 4);                       // "172" plus a zero byte, or four zeros
-+    const __m128i drop = _mm_loadu_si128(kDropLeading + kShape.zeros[length]);
-+    _mm_storeu_si128(buf + kShape.top_length[length], _mm_shuffle_epi8(digits16(high, low), drop));
-     return length;
- }
+```text
+length   = the length, as before
+top      = value / 10^16                     # 0 to 1844
+both     = value / 10^8                      # runs beside the line above
+high,low = the two 8-digit halves below the top
+store the top's characters at buf            # from a table, four bytes
+store the 16 digits at buf + top_length      # top_length and zeros to drop: a table by length
 ```
 
 That was 8 % faster than the branch on the Xeon. Now the benchmark's own loop had become a noticeable part of the work.
@@ -476,15 +465,14 @@ work.
 Unrolling means the compiler writes the loop body out 16 times with fixed offsets, so all of that disappears. GCC
 wouldn't do it for a body this size, not even at `-O3`, until I raised two of its limits:
 
-```diff
- target_compile_options(benchmark PRIVATE -march=native)
-+target_compile_options(benchmark PRIVATE -O3
-+    --param=max-completely-peeled-insns=4000 --param=max-completely-peel-times=16)
+```text
+build flags += unroll the benchmark's loop completely, 16 times
+             + raise two of GCC's limits, so it agrees to
 ```
 
 Together that made 11 cycles on the Zen 2.
 
-> // I asked GCC nicely to unroll the loop. It declined. I asked again with `--param=max-completely-peel-times=16`, and it complied.
+> // I asked GCC nicely to unroll the loop. It declined. I asked again, with the right parameters, and it complied.
 
 ### Stuck at 11
 
@@ -539,19 +527,12 @@ addresses, `lea`, can calculate a + b × 4 in one go. So instead of `high = high
 times that as `high_and_top × 4 + top × (−4 × 10^8)`. Written as a subtraction, GCC moves the four into a separate
 shift again, which is why the code adds a negative constant. The vector side then divides by 40,000 instead of 10,000.
 
-```diff
-+    constexpr uint64_t kMinus4Pow8 = 0 - 4 * kPow10[8];
-     const uint64_t top = value / kPow10[16];
-     const uint64_t high_and_top = value / kPow10[8];
--    const uint64_t high = high_and_top - top * kPow10[8];
--    const uint64_t low = value - high_and_top * kPow10[8];
-+    const uint64_t high4 = high_and_top * 4 + top * kMinus4Pow8;       // imul + lea
-+    const uint64_t low4 = value * 4 + high_and_top * kMinus4Pow8;      // imul + lea
-     ...
--    const __m256i q = _mm256_srli_epi64(_mm256_mul_epu32(x, kDiv10000), 45);
--    const __m256i qr = _mm256_slli_epi16(_mm256_add_epi64(x, _mm256_mul_epu32(q, kSplit)), 2);
-+    const __m256i q = _mm256_srli_epi64(_mm256_mul_epu32(x, kDiv10000), 47);      // 4x / 40000
-+    const __m256i qr = _mm256_add_epi64(x, _mm256_mul_epu32(q, kSplit4));         // 2^18 - 40000
+```text
+before:  high = both - top × 10^8                 # scalar
+         low  = value - both × 10^8
+         vector: x × 4 (a shift), then ÷ 10,000
+after:   high4 = 4 × high, low4 = 4 × low         # imul + lea, the × 4 for free
+         vector: ÷ 40,000 on x as it comes in     # one vector µop fewer
 ```
 
 The model said 10 % faster. The Xeon said 1 to 3 %.
@@ -604,7 +585,7 @@ nothing, same as for versions 7 and 8. I sent all three to the Zen 2 anyway, and
 
 ## The final code
 
-Thirty-four instructions and not a single jump. The lines that versions 8 and 9 changed are described in comments, not
+Thirty-four instructions and not a single jump. The lines that versions 6 to 9 changed are described in comments, not
 shown. The colors link each line to the instructions it became; hover over a line or an instruction to see its
 partners.
 

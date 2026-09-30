@@ -297,7 +297,7 @@ export const figures = {
   journey: figJourney, overlap: figOverlap, chain: figChain, floors: figFloors, sched: figSched,
 };
 
-// The final code for the Godbolt-style view. What versions 8 and 9 changed is described, not shown, so as not to
+// The final code for the Godbolt-style view. What versions 6 to 9 changed is described, not shown, so as not to
 // spoil the challenge.
 const GB_SRC = [
   [null, 'uint64_t decimal_length(uint64_t v) {'],
@@ -308,16 +308,16 @@ const GB_SRC = [
   [null, ''],
   [null, 'size_t u64_to_chars(uint64_t value, char* buf) {'],
   ['b', '    const uint64_t length = decimal_length(value);'],
-  ['c', '    const uint64_t top = value / kPow10[16];'],
-  ['d', '    const uint64_t high_and_top = value / kPow10[8];'],
-  ['e', '    const uint64_t high4 = high_and_top * 4 + top * kMinus4Pow8;'],
-  ['f', '    const uint64_t low4 = value * 4 + high_and_top * kMinus4Pow8;'],
-  ['g', '    const uint64_t top_length = kShape.top_length[length];'],
-  ['h', '    const uint64_t zeros = kShape.zeros[length];'],
-  ['i', '    // store kTopChars.chars[top] at buf       (version 8: not shown)'],
+  ['c', '    // top = value / 10^16                  (version 6: not shown)'],
+  ['d', '    // value / 10^8, beside it              (version 6: not shown)'],
+  ['e', '    // high4 = 4 × the 8 digits below top   (version 7: not shown)'],
+  ['f', '    // low4 = 4 × the last 8 digits         (version 7: not shown)'],
+  ['g', '    // top_length, from a table             (version 6: not shown)'],
+  ['h', '    // zeros to drop, from a table          (version 6: not shown)'],
+  ['i', '    // store the top characters at buf      (version 8: not shown)'],
   ['j', '    const __m128i drop = _mm_loadu_si128(kDropLeading + zeros);'],
   ['j', '    // store _mm_shuffle_epi8(digits16(high4, low4), drop)'],
-  ['j', '    //     at buf + top_length                  (version 8: not shown)'],
+  ['j', '    //     at buf + top_length              (version 8: not shown)'],
   [null, '    return length;'],
   [null, '}'],
   [null, ''],
@@ -325,8 +325,8 @@ const GB_SRC = [
   ['k', '    const __m256i x = _mm256_inserti128_si256('],
   ['k', '        _mm256_castsi128_si256(_mm_cvtsi64_si128(high4)),'],
   ['k', '        _mm_cvtsi64_si128(low4), 1);'],
-  ['l', '    const __m256i q = _mm256_srli_epi64('],
-  ['l', '        _mm256_mul_epu32(x, kDiv40000), 47);'],
+  ['l', '    // q = the first four digits of each half'],
+  ['l', '    //                                      (version 7: not shown)'],
   ['m', '    const __m256i rq = _mm256_add_epi64(x,'],
   ['m', '        _mm256_mul_epu32(q, kSplit));'],
   ['n', '    const __m256i v = _mm256_shuffle_epi8(rq, kSpread);'],
