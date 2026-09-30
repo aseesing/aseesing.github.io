@@ -1,4 +1,5 @@
-// Renders the figures ../index.md uses (drawn in figs.mjs) and the cover to PNG in ../img, 2x, on white.
+// Renders the figures ../index.md uses (drawn in figs.mjs) and the cover to PNG in ../img, 2x, on white, and writes
+// the live Godbolt view to ../_includes/godbolt.html.
 // Needs Google Chrome. Run: node export.mjs [figure name]
 import { writeFileSync, readFileSync, mkdirSync, unlinkSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -14,7 +15,10 @@ const shoot = (file, w, h, scale, out) => execFileSync(chrome, ['--headless=new'
   `--force-device-scale-factor=${scale}`, `--window-size=${w},${h}`, '--virtual-time-budget=6000', `--screenshot=${out}`, `file://${file}`], { stdio: 'ignore' });
 
 // Only the figures ../index.md uses, so an unused one can stay in figs.mjs without cluttering img/.
-const used = new Set([...readFileSync(`${here}../index.md`, 'utf8').matchAll(/img\/fig-(\w+)\.png/g)].map((m) => m[1]));
+const index = readFileSync(`${here}../index.md`, 'utf8');
+const used = new Set([...index.matchAll(/img\/fig-(\w+)\.png/g)].map((m) => m[1]));
+// The page shows the Godbolt view live, from _includes/godbolt.html; the PNG of it is for LinkedIn.
+if (index.includes('include godbolt.html')) used.add('godbolt');
 const only = process.argv[2];
 const all = { ...Object.fromEntries(Object.entries(figures).map(([k, f]) => [k, f()])), godbolt: godbolt() };
 for (const k of Object.keys(all)) if (!used.has(k)) delete all[k];
@@ -28,5 +32,30 @@ for (const [name, markup] of Object.entries(all)) {
   shoot(page, w + 48, h + 48, 2, `${img}fig-${name}.png`);
   unlinkSync(page);
   console.log(name);
+}
+// The live Godbolt view for the page: the same markup as the PNG, plus the hover script.
+if (!only || only === 'godbolt') {
+  mkdirSync(`${here}../_includes`, { recursive: true });
+  writeFileSync(`${here}../_includes/godbolt.html`, `<div class="gb-wrap">
+${godbolt()}
+</div>
+<script>
+(() => {
+  const gb = document.currentScript.previousElementSibling.querySelector('.gb');
+  const parts = gb.querySelectorAll('[data-g]');
+  const show = (g) => {
+    gb.classList.toggle('focus', g !== null);
+    parts.forEach((e) => e.classList.toggle('hl', e.dataset.g === g));
+  };
+  parts.forEach((e) => {
+    e.addEventListener('mouseenter', () => show(e.dataset.g));
+    e.addEventListener('focus', () => show(e.dataset.g));
+  });
+  gb.addEventListener('mouseleave', () => show(null));
+  gb.addEventListener('focusout', () => show(null));
+})();
+</script>
+`);
+  console.log('_includes/godbolt.html');
 }
 if (!only || only === 'cover') { shoot(`${here}cover.html`, 1280, 720, 1.5, `${img}cover.png`); console.log('cover'); }

@@ -607,8 +607,9 @@ nothing, same as for versions 7 and 8. I sent all three to the Zen 2 anyway, and
 
 ## The final code
 
-Thirty-four instructions and not a single jump. The colors link each line to the instructions it became.
+Thirty-four instructions and not a single jump. The colors link each line to the instructions it became; hover over a
+line or an instruction to see its partners.
 
-![C++ source, the instructions GCC makes of it, and what each does](img/fig-godbolt.png)
+{% include godbolt.html %}
 
 *The final C++, its instructions in GCC's order, and what each one does.*

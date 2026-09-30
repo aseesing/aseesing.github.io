@@ -9,6 +9,10 @@
   --accent: #2446c9;
   --add-bg: rgba(27, 150, 105, 0.14);
   --del-bg: rgba(208, 87, 42, 0.11);
+  --rule-strong: #b9bfb5;
+  /* The eight colors of the final-code view. */
+  --h0: #2a78d6; --h1: #eb6834; --h2: #1baf7a; --h3: #eda100;
+  --h4: #e87ba4; --h5: #008300; --h6: #6a5ad0; --h7: #e34948;
   --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --f-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -64,8 +68,24 @@ p:has(> img) { margin: 32px 0 10px; }
 img { display: block; max-width: 100%; height: auto; border-radius: 6px; }
 p:has(> img) + p:has(> em:only-child) { font-family: var(--f-display); font-stretch: 90%; font-size: 14.5px; line-height: 1.45; color: var(--ink-2); margin-bottom: 30px; }
 p:has(> img) + p:has(> em:only-child) em { font-style: normal; }
-/* The final code is wide: let it use more of the screen. */
-p:has(> img[src*="godbolt"]) { width: min(1100px, calc(100vw - 40px)); margin-left: 50%; transform: translateX(-50%); }
+/* The final code: C++, the instructions GCC made of it, and what they do. Wider than the text; scrolls on a phone. */
+.gb-wrap { width: min(1180px, calc(100vw - 40px)); margin: 32px 0 10px 50%; transform: translateX(-50%); overflow-x: auto; }
+.gb-wrap + p:has(> em:only-child) { font-family: var(--f-display); font-stretch: 90%; font-size: 14.5px; color: var(--ink-2); margin-bottom: 30px; }
+.gb-wrap + p:has(> em:only-child) em { font-style: normal; }
+.gb { min-width: 1100px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); }
+.gb-head { display: grid; grid-template-columns: 480px 316px 1fr; column-gap: 16px; font-family: var(--f-display); font-stretch: 90%; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); padding: 9px 0 8px 11px; border-bottom: 1px solid var(--rule); }
+.gb-body { display: grid; grid-template-columns: 480px 1fr; column-gap: 16px; padding-block: 10px; }
+.gb-l, .gb-a { height: 22px; line-height: 22px; border-left: 3px solid transparent; transition: opacity 0.12s; }
+.gb-l { font-family: var(--f-mono); font-size: 12px; white-space: pre; padding-left: 8px; }
+.gb-a { display: grid; grid-template-columns: 96px 212px 1fr; padding-left: 8px; }
+.gb-op { font-family: var(--f-mono); font-size: 12px; font-weight: 600; }
+.gb-args { font-family: var(--f-mono); font-size: 12px; white-space: nowrap; }
+.gb-why { font-family: var(--f-display); font-stretch: 90%; font-size: 13px; color: var(--ink-2); padding-left: 16px; white-space: nowrap; }
+.gb [data-g] { background: color-mix(in srgb, var(--hue) 15%, transparent); border-left-color: var(--hue); cursor: default; }
+.gb .h0 { --hue: var(--h0); } .gb .h1 { --hue: var(--h1); } .gb .h2 { --hue: var(--h2); } .gb .h3 { --hue: var(--h3); }
+.gb .h4 { --hue: var(--h4); } .gb .h5 { --hue: var(--h5); } .gb .h6 { --hue: var(--h6); } .gb .h7 { --hue: var(--h7); }
+.gb.focus [data-g]:not(.hl), .gb.focus .gb-l:not([data-g]) { opacity: 0.28; }
+.gb-l[data-g]:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
 @media (max-width: 560px) {
   body { font-size: 17px; }
