@@ -47,14 +47,31 @@ ${godbolt()}
 <script>
 (() => {
   const gb = document.currentScript.previousElementSibling.querySelector('.gb');
+  const src = gb.querySelector('.gb-src'), asm = gb.querySelector('.gb-asm');
   const parts = gb.querySelectorAll('[data-g]');
+  // The instructions scroll in a box as tall as the code, so both sides stay on the screen together.
+  const fit = () => { asm.style.maxHeight = \`\${Math.max(src.offsetHeight, 360)}px\`; };
+  fit();
+  addEventListener('resize', fit);
+  // Scroll the box so that a line's instructions are in view: all of them when they fit, else the first.
+  const reveal = (g) => {
+    const rows = [...asm.querySelectorAll(\`[data-g="\${g}"]\`)];
+    if (!rows.length) return;
+    const first = rows[0].offsetTop, last = rows[rows.length - 1].offsetTop + rows[rows.length - 1].offsetHeight;
+    const view = asm.clientHeight;
+    if (first >= asm.scrollTop && last <= asm.scrollTop + view) return;
+    const top = last - first <= view ? (first + last - view) / 2 : first - 8;
+    asm.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  };
   const show = (g) => {
     gb.classList.toggle('focus', g !== null);
     parts.forEach((e) => e.classList.toggle('hl', e.dataset.g === g));
   };
   parts.forEach((e) => {
-    e.addEventListener('mouseenter', () => show(e.dataset.g));
-    e.addEventListener('focus', () => show(e.dataset.g));
+    const onSrc = src.contains(e);
+    const enter = () => { show(e.dataset.g); if (onSrc) reveal(e.dataset.g); };
+    e.addEventListener('mouseenter', enter);
+    e.addEventListener('focus', enter);
   });
   gb.addEventListener('mouseleave', () => show(null));
   gb.addEventListener('focusout', () => show(null));

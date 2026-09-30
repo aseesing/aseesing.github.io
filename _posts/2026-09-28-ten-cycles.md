@@ -207,7 +207,7 @@ where they told me something.
 I kept a log of every attempt. The ones that didn't help are left out of this post. In the code below I also left out
 the casts the intrinsics need, to keep it readable, and the `k...` names are constant vectors. I don't want to spoil
 the solution for the other participants of the challenge, so the last two steps (version 6, and versions 7 to 9) are
-in pseudo-code, also in the final code.
+in pseudo-code, and so is the final code.
 
 ### Version 1 · SWAR, no branches (59 cycles)
 
@@ -585,10 +585,10 @@ nothing, same as for versions 7 and 8. I sent all three to the Zen 2 anyway, and
 
 ## The final code
 
-Thirty-four instructions and not a single jump. The lines that versions 6 to 9 changed are described in comments, not
-shown. The colors link each line to the instructions it became; hover over a line or an instruction to see its
+Thirty-four instructions and not a single jump. The code is in pseudo-code; the instructions are what GCC made of the
+real C++. The colors link each line to the instructions it became; hover over a line or an instruction to see its
 partners.
 
 {% include godbolt.html %}
 
-*The final C++, its instructions in GCC's order, and what each one does.*
+*The final conversion in pseudo-code, its instructions in GCC's order, and what each one does.*

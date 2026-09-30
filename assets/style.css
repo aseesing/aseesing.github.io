@@ -101,6 +101,9 @@ p:has(> img) + p:has(> em:only-child) em { font-style: normal; }
 .gb [data-g] { background: color-mix(in srgb, var(--hue) 15%, transparent); border-left-color: var(--hue); cursor: default; }
 .gb .h0 { --hue: var(--h0); } .gb .h1 { --hue: var(--h1); } .gb .h2 { --hue: var(--h2); } .gb .h3 { --hue: var(--h3); }
 .gb .h4 { --hue: var(--h4); } .gb .h5 { --hue: var(--h5); } .gb .h6 { --hue: var(--h6); } .gb .h7 { --hue: var(--h7); }
+/* On the page the instructions scroll in their own box, as tall as the code (the script in _includes sets it). */
+.gb-asm { position: relative; overflow-y: auto; overscroll-behavior: contain; }
+.gb-src { align-self: start; }
 .gb.focus [data-g]:not(.hl), .gb.focus .gb-l:not([data-g]) { opacity: 0.28; }
 .gb-l[data-g]:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 

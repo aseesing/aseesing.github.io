@@ -41,8 +41,8 @@ export function box(x, y, w, h, title, sub, cls = 'box') {
     (sub ? text(x + w / 2, y + h / 2 + 13, esc(sub), 't-sub', 'middle') : '');
 }
 
-// The Godbolt-style view: source lines, GCC's instructions in its own order, and what each does. Each
-// source line has a group letter; its instructions share the group's color, and hovering links them.
+// The Godbolt-style view: the code (here pseudo-code), GCC's instructions in its own order, and what each does.
+// Each line has a group letter; its instructions share the group's color, and hovering links them.
 export function godboltView(src, asm, head) {
   // Colors in the order the groups first appear on the left, so neighbours differ.
   const letters = [...new Set([...src.map(([g]) => g), ...asm.map(([g]) => g)].filter(Boolean))];
@@ -50,7 +50,7 @@ export function godboltView(src, asm, head) {
   const s = src.map(([g, t]) => `<div class="gb-l${hue(g)}"${g ? ` data-g="${g}" tabindex="0"` : ''}>${esc(t) || '&nbsp;'}</div>`).join('');
   const a = asm.map(([g, op, args, why]) =>
     `<div class="gb-a${hue(g)}" data-g="${g}"><span class="gb-op">${esc(op)}</span><span class="gb-args">${esc(args)}</span><span class="gb-why">${esc(why)}</span></div>`).join('');
-  return `<div class="gb" role="group" aria-label="The C++ source, the instructions GCC 14.2 makes of it in GCC's order, and what each instruction does">
-<div class="gb-head"><span>C++</span><span>${esc(head)}</span><span>what it does</span></div>
+  return `<div class="gb" role="group" aria-label="The code in pseudo-code, the instructions GCC 14.2 makes of it in GCC's order, and what each instruction does">
+<div class="gb-head"><span>Pseudo-code</span><span>${esc(head)}</span><span>what it does</span></div>
 <div class="gb-body"><div class="gb-src">${s}</div><div class="gb-asm">${a}</div></div></div>`;
 }

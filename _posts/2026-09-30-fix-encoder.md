@@ -168,7 +168,7 @@ guess costs about 20 cycles.
 
 I kept a log of every attempt, and I've left out the ones that didn't help. The code is simplified: no casts, and only
 the AVX2 path. I don't want to spoil the solution for the other participants of the challenge, so the last two steps
-are in pseudo-code, also in the final code.
+are in pseudo-code, and so is the final code.
 
 ### Version 1 · Write it once (57 cycles in the model)
 
@@ -369,10 +369,10 @@ The memory is 9 KB of tables right in front of the message: the millisecond digi
 and 64 bytes of state for the current day and second. Everything sits at a fixed distance from the message, so one
 register reaches all of it.
 
-The lines that versions 6 and 7 changed are described in comments, not shown. The colors link each line to the
-instructions it became; hover over a line or an instruction to see its partners. The only jumps are the seven checks,
+The code is in pseudo-code; the instructions are what GCC made of the real C++. The colors link each line to the
+instructions it became; hover over a line and its instructions scroll into view. The only jumps are the seven checks,
 and they never go anywhere.
 
 {% include godbolt-fix.html %}
 
-*The final fast path, the instructions GCC made of it in its own order, and what each one does.*
+*The final fast path in pseudo-code, the instructions GCC made of it in its own order, and what each one does.*
