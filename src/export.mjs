@@ -1,4 +1,4 @@
-// Renders the figures ../index.md uses (drawn in figs.mjs) and the cover to PNG in ../img, 2x, on white, and writes
+// Renders the figures ../_posts/2026-09-28-ten-cycles.md uses (drawn in figs.mjs) and the cover to PNG in ../img, 2x, on white, and writes
 // the live Godbolt view to ../_includes/godbolt.html.
 // Needs Google Chrome. Run: node export.mjs [figure name]
 import { writeFileSync, readFileSync, mkdirSync, unlinkSync } from 'node:fs';
@@ -14,8 +14,8 @@ const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const shoot = (file, w, h, scale, out) => execFileSync(chrome, ['--headless=new', '--disable-gpu', '--hide-scrollbars',
   `--force-device-scale-factor=${scale}`, `--window-size=${w},${h}`, '--virtual-time-budget=6000', `--screenshot=${out}`, `file://${file}`], { stdio: 'ignore' });
 
-// Only the figures ../index.md uses, so an unused one can stay in figs.mjs without cluttering img/.
-const index = readFileSync(`${here}../index.md`, 'utf8');
+// Only the figures ../_posts/2026-09-28-ten-cycles.md uses, so an unused one can stay in figs.mjs without cluttering img/.
+const index = readFileSync(`${here}../_posts/2026-09-28-ten-cycles.md`, 'utf8');
 const used = new Set([...index.matchAll(/img\/fig-(\w+)\.png/g)].map((m) => m[1]));
 // The page shows the Godbolt view live, from _includes/godbolt.html; the PNG of it is for LinkedIn.
 if (index.includes('include godbolt.html')) used.add('godbolt');

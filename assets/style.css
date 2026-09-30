@@ -39,6 +39,18 @@ h2 { font-size: 34px; font-weight: 740; line-height: 1.05; margin: 64px 0 16px; 
 h3 { font-size: 24px; font-weight: 700; line-height: 1.15; margin: 40px 0 12px; }
 
 p { margin: 0 0 18px; }
+
+/* Home page: the paragraph about me, then the list of articles. A post links back with the line above its title. */
+.home { font-family: var(--f-display); font-stretch: 90%; font-size: 15px; margin: 0 0 28px; }
+.home a { color: var(--muted); text-decoration: none; }
+.home a:hover { color: var(--accent); }
+.about { margin-top: 32px; }
+.posts { list-style: none; padding: 0; border-top: 1px solid var(--rule); }
+.posts li { padding: 18px 0; border-bottom: 1px solid var(--rule); margin: 0; }
+.posts a { font-family: var(--f-display); font-stretch: 80%; font-size: 26px; font-weight: 700; line-height: 1.1; text-decoration: none; }
+.posts a:hover { text-decoration: underline; }
+.posts-date { display: block; font-family: var(--f-display); font-stretch: 90%; font-size: 14px; color: var(--muted); margin-top: 4px; }
+.posts p { margin: 6px 0 0; color: var(--ink-2); }
 a { color: var(--accent); text-underline-offset: 3px; }
 strong { font-weight: 650; }
 ul, ol { margin: 0 0 20px; padding-left: 24px; }

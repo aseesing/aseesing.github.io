@@ -1,4 +1,4 @@
-title: Ten cycles per integer
+title: Tag=Value
 markdown: kramdown
 kramdown:
   input: GFM
@@ -6,3 +6,4 @@ kramdown:
 exclude:
   - src
   - README.md
+  - .idea
