@@ -1,0 +1,8 @@
+title: Ten cycles per integer
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+exclude:
+  - src
+  - README.md

@@ -1,0 +1,21 @@
+<!doctype html><html><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+html,body{margin:0;width:1280px;height:720px;background:#f6f7f4;color:#16202b;overflow:hidden}
+.c{box-sizing:border-box;width:1280px;height:720px;padding:64px 80px;display:flex;flex-direction:column;justify-content:space-between}
+.k{font:500 18px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:#4a5561}
+h1{font-family:Archivo,sans-serif;font-stretch:72%;font-weight:780;font-size:96px;line-height:.95;margin:18px 0 0}
+.r{display:flex;align-items:baseline;gap:28px;font-family:Archivo,sans-serif;font-stretch:62%;font-weight:800;line-height:.8;border-top:2px solid #16202b;padding-top:28px}
+.from{font-size:150px;color:#8a939c;text-decoration:line-through;text-decoration-thickness:6px;text-decoration-color:#d0572a}
+.a{font-size:80px;color:#b9bfb5;font-weight:500}
+.to{font-size:260px;color:#2446c9}
+.n{font:500 20px/1.55 "IBM Plex Mono",monospace;color:#4a5561;margin-left:auto;align-self:flex-end;text-align:right}
+.n b{color:#16202b;font-weight:600}
+.fix{font:500 19px "IBM Plex Mono",monospace;color:#8a939c;white-space:nowrap;overflow:hidden}
+.fix i{font-style:normal;color:#2446c9;background:rgba(36,70,201,.08);padding:1px 4px;border-radius:3px;font-weight:600}
+</style>
+<div class="c">
+ <div><div class="k">Low-latency C++ · uint64 → ASCII · AMD Zen 2</div><h1>Ten cycles per integer</h1></div>
+ <div class="r"><span class="from">256</span><span class="a">→</span><span class="to">10</span><div class="n"><b>cycles per conversion</b><br>AMD Zen 2, GCC 14.2<br>snprintf → our final version</div></div>
+ <div class="fix">8=FIX.4.4|35=8|34=<i>4817362219</i>|37=<i>1727433600123456789</i>|38=<i>1500</i>|32=<i>300</i>|31=<i>1873400</i>|151=<i>1200</i>|14=<i>300</i>|6=<i>1873400</i>|</div>
+</div></html>

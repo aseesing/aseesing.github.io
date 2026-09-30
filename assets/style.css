@@ -1,0 +1,73 @@
+/* Colors and fonts. Change these and the whole page follows. */
+:root {
+  --bg: #f6f7f4;
+  --panel: #eceee8;
+  --ink: #16202b;
+  --ink-2: #4a5561;
+  --muted: #6c7680;
+  --rule: #d6dad2;
+  --accent: #2446c9;
+  --add-bg: rgba(27, 150, 105, 0.14);
+  --del-bg: rgba(208, 87, 42, 0.11);
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding-inline: 20px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 18px;
+  line-height: 1.62;
+}
+.page { max-width: 720px; margin: 0 auto; padding-block: 56px 96px; }
+
+/* Header: title, subtitle and byline come from the front matter of index.md. */
+h1, h2, h3 { font-family: var(--f-display); font-stretch: 72%; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(44px, 9vw, 80px); font-weight: 780; line-height: 0.95; }
+.dek { font-size: 22px; line-height: 1.45; color: var(--ink-2); margin: 22px 0 10px; }
+.byline { font-family: var(--f-display); font-stretch: 90%; font-size: 15px; color: var(--muted); margin: 0 0 40px; }
+h2 { font-size: 34px; font-weight: 740; line-height: 1.05; margin: 64px 0 16px; }
+h3 { font-size: 24px; font-weight: 700; line-height: 1.15; margin: 40px 0 12px; }
+
+p { margin: 0 0 18px; }
+a { color: var(--accent); text-underline-offset: 3px; }
+strong { font-weight: 650; }
+ul, ol { margin: 0 0 20px; padding-left: 24px; }
+li { margin-bottom: 8px; }
+li > p { margin: 0 0 8px; }
+
+/* Code. */
+code { font-family: var(--f-mono); font-size: 0.84em; background: var(--panel); padding: 1px 5px; border-radius: 3px; }
+pre { font-family: var(--f-mono); font-size: 13.5px; line-height: 1.6; background: var(--panel); border-radius: 6px; padding: 16px 18px; overflow-x: auto; margin: 0 0 22px; }
+pre code { background: none; padding: 0; font-size: inherit; }
+.highlight .c, .highlight .c1, .highlight .cm, .highlight .cp { color: var(--muted); }
+.highlight .k, .highlight .kt, .highlight .kd { color: var(--accent); }
+/* ```diff blocks: + lines green, - lines red. */
+.language-diff .gi, .language-diff .gd { display: inline-block; min-width: 100%; }
+.language-diff .gi { background: var(--add-bg); }
+.language-diff .gd { background: var(--del-bg); color: var(--ink-2); }
+
+/* The jokes: a quoted line starting with // in the Markdown. */
+blockquote { margin: 26px 0 28px; padding: 0; border: 0; }
+blockquote p { font-family: var(--f-mono); font-size: 14.5px; line-height: 1.55; color: var(--ink-2); margin: 0; }
+
+/* Figures: an image, then an italic line under it as its caption. */
+p:has(> img) { margin: 32px 0 10px; }
+img { display: block; max-width: 100%; height: auto; border-radius: 6px; }
+p:has(> img) + p:has(> em:only-child) { font-family: var(--f-display); font-stretch: 90%; font-size: 14.5px; line-height: 1.45; color: var(--ink-2); margin-bottom: 30px; }
+p:has(> img) + p:has(> em:only-child) em { font-style: normal; }
+/* The final code is wide: let it use more of the screen. */
+p:has(> img[src*="godbolt"]) { width: min(1100px, calc(100vw - 40px)); margin-left: 50%; transform: translateX(-50%); }
+
+@media (max-width: 560px) {
+  body { font-size: 17px; }
+  .page { padding-block: 32px 72px; }
+  h2 { font-size: 28px; margin-top: 52px; }
+  h3 { font-size: 21px; }
+  .dek { font-size: 19px; }
+}

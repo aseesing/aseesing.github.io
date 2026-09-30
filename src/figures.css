@@ -1,0 +1,75 @@
+/* Styles for rendering the figures to PNG (export.mjs). The page itself uses ../assets/style.css. */
+:root {
+  --bg: #f6f7f4;
+  --panel: #eceee8;
+  --panel-2: #e3e6de;
+  --ink: #16202b;
+  --ink-2: #4a5561;
+  --muted: #6c7680;
+  --rule: #d6dad2;
+  --rule-strong: #b9bfb5;
+  --accent: #2446c9;
+  --accent-ink: #2446c9;
+  --accent-wash: rgba(36, 70, 201, 0.08);
+  --warm: #d0572a;
+  --warm-ink: #a8421b;
+  --mark-neutral: #a5adb4;
+  --on-accent: #ffffff;
+  --h0: #2a78d6; --h1: #eb6834; --h2: #1baf7a; --h3: #eda100;
+  --h4: #e87ba4; --h5: #008300; --h6: #6a5ad0; --h7: #e34948;
+  --add-bg: rgba(27, 150, 105, 0.13); --add-mk: #127a55;
+  --del-bg: rgba(208, 87, 42, 0.10); --del-mk: #b3461d;
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Serif 4", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+body { margin: 0; background: #ffffff; color: var(--ink); font-family: var(--f-body); }
+code { font-family: var(--f-mono); }
+/* Figure marks and text, from the page tokens. */
+.grid { stroke: var(--rule); stroke-width: 1; }
+.t { font-family: var(--f-display); font-stretch: 90%; font-size: 13px; fill: var(--ink-2); }
+.t-num { font-family: var(--f-mono); font-stretch: normal; font-size: 12px; font-variant-numeric: tabular-nums; }
+.t-small { font-family: var(--f-display); font-stretch: 90%; font-size: 12px; fill: var(--ink-2); }
+.t-strong { fill: var(--ink); font-weight: 600; }
+.t-sub { font-family: var(--f-mono); font-size: 11px; fill: var(--muted); }
+.t-box { font-family: var(--f-display); font-stretch: 85%; font-size: 14px; font-weight: 650; fill: var(--ink); }
+.t-idx { font-family: var(--f-mono); font-size: 10.5px; fill: var(--muted); }
+.t-cell { font-family: var(--f-mono); font-size: 13px; font-weight: 500; fill: var(--ink); }
+.t-blk { font-family: var(--f-display); font-stretch: 85%; font-size: 13px; font-weight: 600; fill: var(--ink); }
+.t-cell-on { fill: var(--on-accent); }
+.t-cell-dim { fill: var(--muted); }
+.t-hot { font-family: var(--f-display); font-stretch: 90%; font-size: 13px; font-weight: 650; fill: var(--accent-ink); }
+.m-accent { fill: var(--accent); }
+.m-warm { fill: var(--warm); }
+.m-neutral { fill: var(--mark-neutral); }
+.ln { stroke: var(--ink-2); stroke-width: 1.5; fill: none; }
+.ln-head { fill: var(--ink-2); }
+.ln-hot { stroke: var(--accent); stroke-width: 2.5; fill: none; }
+.ln-hot-head { fill: var(--accent); }
+.ln-thin { stroke: var(--ink-2); stroke-width: 1; }
+.ln-hot-thin { stroke: var(--accent); stroke-width: 2; }
+.ln-warm { stroke: var(--warm); stroke-width: 3; }
+.box { fill: var(--panel); stroke: var(--rule-strong); stroke-width: 1; }
+.box-hot { fill: var(--accent-wash); stroke: var(--accent); stroke-width: 1.5; }
+.cell { fill: var(--panel); stroke: var(--rule-strong); stroke-width: 1; }
+.cell-keep { fill: var(--accent); stroke: var(--accent); }
+.cell-nul { fill: none; stroke: var(--rule-strong); stroke-dasharray: 0; }
+
+.ln-warm-thin { stroke: var(--warm); stroke-width: 2; }
+
+.xwide { width: min(1180px, calc(100vw - 40px)); margin-left: 50%; transform: translateX(-50%); }
+.gb { min-width: 1100px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); }
+.gb-head { display: grid; grid-template-columns: 480px 316px 1fr; column-gap: 16px; font-family: var(--f-display); font-stretch: 90%; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); padding: 9px 0 8px 11px; border-bottom: 1px solid var(--rule); }
+.gb-body { display: grid; grid-template-columns: 480px 1fr; column-gap: 16px; padding-block: 10px; }
+.gb-l, .gb-a { height: 22px; line-height: 22px; border-left: 3px solid transparent; transition: opacity 0.12s; }
+.gb-l { font-family: var(--f-mono); font-size: 12px; white-space: pre; padding-left: 8px; color: var(--ink); }
+.gb-a { display: grid; grid-template-columns: 96px 212px 1fr; padding-left: 8px; }
+.gb-op { font-family: var(--f-mono); font-size: 12px; font-weight: 600; color: var(--ink); }
+.gb-args { font-family: var(--f-mono); font-size: 12px; color: var(--ink); white-space: nowrap; }
+.gb-why { font-family: var(--f-display); font-stretch: 90%; font-size: 13px; color: var(--ink-2); padding-left: 16px; white-space: nowrap; }
+.gb [data-g] { background: color-mix(in srgb, var(--hue) 15%, transparent); border-left-color: var(--hue); cursor: default; }
+.gb .h0 { --hue: var(--h0); } .gb .h1 { --hue: var(--h1); } .gb .h2 { --hue: var(--h2); } .gb .h3 { --hue: var(--h3); }
+.gb .h4 { --hue: var(--h4); } .gb .h5 { --hue: var(--h5); } .gb .h6 { --hue: var(--h6); } .gb .h7 { --hue: var(--h7); }
+.gb.focus [data-g]:not(.hl), .gb.focus .gb-l:not([data-g]) { opacity: 0.28; }
+.gb-l[data-g]:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
