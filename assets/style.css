@@ -48,7 +48,10 @@ pre code { background: none; padding: 0; font-size: inherit; }
 .highlight .c, .highlight .c1, .highlight .cm, .highlight .cp { color: var(--muted); }
 .highlight .k, .highlight .kt, .highlight .kd { color: var(--accent); }
 /* ```diff blocks: + lines green, - lines red. */
-.language-diff .gi, .language-diff .gd { display: inline-block; min-width: 100%; }
+/* Rouge puts each line's newline inside its span, so the spans must be blocks to stay on their own line. The code
+   block is as wide as its longest line, so the colors reach the end when you scroll sideways. */
+.language-diff code { display: block; min-width: max-content; }
+.language-diff .gi, .language-diff .gd { display: block; }
 .language-diff .gi { background: var(--add-bg); }
 .language-diff .gd { background: var(--del-bg); color: var(--ink-2); }
 
